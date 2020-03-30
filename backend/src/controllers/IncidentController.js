@@ -1,16 +1,18 @@
+const { validationResult } = require("express-validator");
 const connection = require("../database/connection");
 
 module.exports = {
   async index(request, response) {
     const { page = 1 } = request.query;
+    const [q] = await connection("incidents").count();
 
-    const [count] = await connection("incidents").count();
-    console.log(count);
+    const ong_id = request.headers.authorization;
 
     const incidents = await connection("incidents")
       .join("ongs", "ongs.id", "=", "incidents.ong_id")
       .limit(5)
       .offset((page - 1) * 5)
+      .where("ong_id", ong_id)
       .select([
         "incidents.*",
         "ongs.name",
@@ -47,6 +49,10 @@ module.exports = {
       .where("id", id)
       .select("ong_id")
       .first();
+
+    if (incident === undefined) {
+      return response.status(404).json({ error: "Incident nofr foud" });
+    }
 
     if (incident.ong_id !== ong_id) {
       return response.status(401).json({ error: "Operation not permitted." });
