@@ -1,10 +1,8 @@
-const { validationResult } = require("express-validator");
 const connection = require("../database/connection");
 
 module.exports = {
   async index(request, response) {
     const { page = 1 } = request.query;
-    const [q] = await connection("incidents").count();
 
     const ong_id = request.headers.authorization;
 
